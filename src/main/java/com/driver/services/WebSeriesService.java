@@ -2,8 +2,10 @@ package com.driver.services;
 
 import com.driver.EntryDto.WebSeriesEntryDto;
 import com.driver.model.ProductionHouse;
+import com.driver.model.User;
 import com.driver.model.WebSeries;
 import com.driver.repository.ProductionHouseRepository;
+import com.driver.repository.UserRepository;
 import com.driver.repository.WebSeriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,10 @@ import java.util.List;
 public class WebSeriesService {
 
     @Autowired
-    WebSeriesRepository webSeriesRepository;
+    public WebSeriesRepository webSeriesRepository;
 
     @Autowired
-    ProductionHouseRepository productionHouseRepository;
+    public ProductionHouseRepository productionHouseRepository;
 
     public Integer addWebSeries(WebSeriesEntryDto webSeriesEntryDto)throws  Exception{
 

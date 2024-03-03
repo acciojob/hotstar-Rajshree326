@@ -12,15 +12,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SubscriptionService {
 
     @Autowired
-    SubscriptionRepository subscriptionRepository;
+    public SubscriptionRepository subscriptionRepository;
 
     @Autowired
-    UserRepository userRepository;
+    public UserRepository userRepository;
 
     public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
 
@@ -28,6 +29,11 @@ public class SubscriptionService {
         Subscription subscription = new Subscription();
         subscription.setSubscriptionType(subscriptionEntryDto.getSubscriptionType());
         subscription.setNoOfScreensSubscribed(subscriptionEntryDto.getNoOfScreensRequired());
+
+        User user = userRepository.findById(subscriptionEntryDto.getUserId())
+                .orElseThrow(()-> new IllegalArgumentException("User Not Found"));
+
+        subscription.setUser(user);
 
         int totalAmount = calculateTotalAmount(subscriptionEntryDto.getSubscriptionType(), subscriptionEntryDto.getNoOfScreensRequired());
         subscription.setTotalAmountPaid(totalAmount);

@@ -10,9 +10,8 @@ import com.driver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class SubscriptionService {
@@ -30,6 +29,8 @@ public class SubscriptionService {
         subscription.setSubscriptionType(subscriptionEntryDto.getSubscriptionType());
         subscription.setNoOfScreensSubscribed(subscriptionEntryDto.getNoOfScreensRequired());
 
+        if(userRepository==null)return -1;
+
         User user = userRepository.findById(subscriptionEntryDto.getUserId())
                 .orElseThrow(()-> new IllegalArgumentException("User Not Found"));
 
@@ -39,6 +40,7 @@ public class SubscriptionService {
         int totalAmount = calculateTotalAmount(subscriptionEntryDto.getSubscriptionType(), subscriptionEntryDto.getNoOfScreensRequired());
         subscription.setTotalAmountPaid(totalAmount);
 
+        if(subscriptionRepository == null)return -1;
         Subscription savedSubscription = subscriptionRepository.save(subscription);
 
         return savedSubscription.getTotalAmountPaid();

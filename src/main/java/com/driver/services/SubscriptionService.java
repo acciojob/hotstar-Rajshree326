@@ -34,6 +34,7 @@ public class SubscriptionService {
                 .orElseThrow(()-> new IllegalArgumentException("User Not Found"));
 
         subscription.setUser(user);
+        user.setSubscription(subscription);
 
         int totalAmount = calculateTotalAmount(subscriptionEntryDto.getSubscriptionType(), subscriptionEntryDto.getNoOfScreensRequired());
         subscription.setTotalAmountPaid(totalAmount);

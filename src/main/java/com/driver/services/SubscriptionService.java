@@ -29,13 +29,12 @@ public class SubscriptionService {
         subscription.setSubscriptionType(subscriptionEntryDto.getSubscriptionType());
         subscription.setNoOfScreensSubscribed(subscriptionEntryDto.getNoOfScreensRequired());
 
-        if(userRepository==null)return -1;
+//        User user = userRepository.findById(subscriptionEntryDto.getUserId())
+//                .orElseThrow(()-> new IllegalArgumentException("User Not Found"));
+//
+//        subscription.setUser(user);
+//        user.setSubscription(subscription);
 
-        User user = userRepository.findById(subscriptionEntryDto.getUserId())
-                .orElseThrow(()-> new IllegalArgumentException("User Not Found"));
-
-        subscription.setUser(user);
-        user.setSubscription(subscription);
         int baseCost;
         int costPerScreen;
 
@@ -58,7 +57,6 @@ public class SubscriptionService {
         int totalAmount = baseCost + costPerScreen * subscriptionEntryDto.getNoOfScreensRequired();
         subscription.setTotalAmountPaid(totalAmount);
 
-        if(subscriptionRepository == null)return -1;
         Subscription savedSubscription = subscriptionRepository.save(subscription);
 
         return savedSubscription.getTotalAmountPaid();

@@ -125,7 +125,7 @@ public class SubscriptionService {
         List<Subscription> subscriptions = subscriptionRepository.findAll();
 
         // Sum up the total amounts of all subscriptions
-
+        if(subscriptions.isEmpty()) return 0;
         return subscriptions.stream()
                 .mapToInt(Subscription::getTotalAmountPaid)
                 .sum();

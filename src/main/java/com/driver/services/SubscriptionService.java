@@ -36,22 +36,10 @@ public class SubscriptionService {
 
         subscription.setUser(user);
         user.setSubscription(subscription);
-
-        int totalAmount = calculateTotalAmount(subscriptionEntryDto.getSubscriptionType(), subscriptionEntryDto.getNoOfScreensRequired());
-        subscription.setTotalAmountPaid(totalAmount);
-
-        if(subscriptionRepository == null)return -1;
-        Subscription savedSubscription = subscriptionRepository.save(subscription);
-
-        return savedSubscription.getTotalAmountPaid();
-    }
-
-    private int calculateTotalAmount(SubscriptionType subscriptionType, int noOfScreensRequired) {
         int baseCost;
         int costPerScreen;
 
-        // Set the base cost and cost per screen based on the subscription type
-        switch (subscriptionType) {
+        switch (subscriptionEntryDto.getSubscriptionType()) {
             case BASIC:
                 baseCost = 500;
                 costPerScreen = 200;
@@ -67,9 +55,13 @@ public class SubscriptionService {
             default:
                 throw new IllegalArgumentException("Invalid subscription type");
         }
+        int totalAmount = baseCost + costPerScreen * subscriptionEntryDto.getNoOfScreensRequired();
+        subscription.setTotalAmountPaid(totalAmount);
 
-        // Calculate the total amount based on the subscription type and number of screens required
-        return baseCost + costPerScreen * noOfScreensRequired;
+        if(subscriptionRepository == null)return -1;
+        Subscription savedSubscription = subscriptionRepository.save(subscription);
+
+        return savedSubscription.getTotalAmountPaid();
     }
 
 
@@ -87,38 +79,70 @@ public class SubscriptionService {
             throw new Exception("Already the best Subscription");
         }
 
-        int upgradePriceDifference = calculateUpgradePriceDifference(currentSubscription.getSubscriptionType(),
-                currentSubscription.getNoOfScreensSubscribed());
+        //get the new SubscriptionType
 
-        SubscriptionType newSubscriptionType = getNextSubscriptionType(currentSubscription.getSubscriptionType());
+        SubscriptionType newSubscriptionType ;
+
+        switch (currentSubscription.getSubscriptionType()) {
+            case BASIC:
+                newSubscriptionType = SubscriptionType.PRO;
+                break;
+            case PRO:
+                newSubscriptionType = SubscriptionType.ELITE;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid subscription type");
+        }
+
+        //calculate the price paid in current subscription
+        int baseCost;
+        int costPerScreen;
+        switch (currentSubscription.getSubscriptionType()) {
+            case BASIC:
+                baseCost = 500;
+                costPerScreen = 200;
+                break;
+            case PRO:
+                baseCost = 800;
+                costPerScreen = 250;
+                break;
+            case ELITE:
+                baseCost = 1000;
+                costPerScreen = 350;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid subscription type");
+        }
+        int totalAmount = baseCost + costPerScreen * currentSubscription.getNoOfScreensSubscribed();
+
+
+        //calculate the price paid in new subscription
+        switch (newSubscriptionType) {
+            case BASIC:
+                baseCost = 500;
+                costPerScreen = 200;
+                break;
+            case PRO:
+                baseCost = 800;
+                costPerScreen = 250;
+                break;
+            case ELITE:
+                baseCost = 1000;
+                costPerScreen = 350;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid subscription type");
+        }
+        int newTotalAmount = baseCost + costPerScreen * currentSubscription.getNoOfScreensSubscribed();
+
+        //upgrade the current subscription
         currentSubscription.setSubscriptionType(newSubscriptionType);
-
-        int newTotalAmount = calculateTotalAmount(newSubscriptionType, currentSubscription.getNoOfScreensSubscribed());
         currentSubscription.setTotalAmountPaid(newTotalAmount);
 
         subscriptionRepository.save(currentSubscription);
 
-        return upgradePriceDifference;
-    }
-
-    private int calculateUpgradePriceDifference(SubscriptionType currentSubscriptionType, int currentNoOfScreens) {
-        int currentSubscriptionPrice = calculateTotalAmount(currentSubscriptionType, currentNoOfScreens);
-
-        SubscriptionType nextSubscriptionType = getNextSubscriptionType(currentSubscriptionType);
-        int nextSubscriptionPrice = calculateTotalAmount(nextSubscriptionType, currentNoOfScreens);
-
-        return nextSubscriptionPrice - currentSubscriptionPrice;
-    }
-
-    private SubscriptionType getNextSubscriptionType(SubscriptionType currentSubscriptionType) {
-        switch (currentSubscriptionType) {
-            case BASIC:
-                return SubscriptionType.PRO;
-            case PRO:
-                return SubscriptionType.ELITE;
-            default:
-                throw new IllegalArgumentException("Invalid subscription type");
-        }
+        //return the price difference
+        return newTotalAmount-totalAmount;
     }
 
     public Integer calculateTotalRevenueOfHotstar(){

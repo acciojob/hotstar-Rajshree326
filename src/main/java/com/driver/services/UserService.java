@@ -39,7 +39,7 @@ public class UserService {
         }
         List<WebSeries> allWebSeries = webSeriesRepository.findAll();
         long countViewableWebSeries = allWebSeries.stream()
-                .filter(webSeries -> webSeries.getAgeLimit() <= user.getAge()
+                .filter(webSeries -> webSeries.getAgeLimit() < user.getAge()
                         && user.getSubscription().getSubscriptionType() == webSeries.getSubscriptionType())
                 .count();
         return (int) countViewableWebSeries;

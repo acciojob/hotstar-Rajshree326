@@ -29,11 +29,11 @@ public class SubscriptionService {
         subscription.setSubscriptionType(subscriptionEntryDto.getSubscriptionType());
         subscription.setNoOfScreensSubscribed(subscriptionEntryDto.getNoOfScreensRequired());
 
-//        User user = userRepository.findById(subscriptionEntryDto.getUserId())
-//                .orElseThrow(()-> new IllegalArgumentException("User Not Found"));
-//
-//        subscription.setUser(user);
-//        user.setSubscription(subscription);
+        User user = userRepository.findById(subscriptionEntryDto.getUserId())
+                .orElseThrow(()-> new IllegalArgumentException("User Not Found"));
+
+        subscription.setUser(user);
+        user.setSubscription(subscription);
 
         int baseCost;
         int costPerScreen;

@@ -34,16 +34,32 @@ public class UserService {
         //Return the count of all webSeries that a user can watch based on his ageLimit and subscriptionType
         //Hint: Take out all the Webseries from the WebRepository
         User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return 0;
-        }
+
         List<WebSeries> allWebSeries = webSeriesRepository.findAll();
-        long countViewableWebSeries = allWebSeries.stream()
-                .filter(webSeries -> webSeries.getAgeLimit() < user.getAge()
-                        && user.getSubscription().getSubscriptionType() == webSeries.getSubscriptionType())
-                .count();
-        return (int) countViewableWebSeries;
+
+        int count = 0;
+        for(WebSeries webseries : allWebSeries){
+            if(webseries.getAgeLimit() <= user.getAge()){
+                if(isPossible(user , webseries)){
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
+    public Boolean isPossible(User user, WebSeries webSeries){
+        if(user.getSubscription().getSubscriptionType() == SubscriptionType.ELITE){
+            return true;
+        }
+        if(user.getSubscription().getSubscriptionType() == SubscriptionType.PRO){
+            if(webSeries.getSubscriptionType() == SubscriptionType.ELITE)return false;
+        }
+        if(user.getSubscription().getSubscriptionType() == SubscriptionType.BASIC){
+            if(webSeries.getSubscriptionType() == SubscriptionType.BASIC)return true;
+            return false;
+        }
+        return true;
+    }
 
 }

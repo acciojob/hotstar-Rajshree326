@@ -23,7 +23,13 @@ public class SubscriptionService {
     @Autowired
     public UserRepository userRepository;
 
-    public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
+
+    public SubscriptionService(SubscriptionRepository subscriptionRepository , UserRepository userRepository){
+        this.subscriptionRepository = subscriptionRepository;
+        this.userRepository = userRepository;
+    }
+
+    public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto)  {
 
         //Save The subscription Object into the Db and return the total Amount that user has to pay
         Subscription subscription = new Subscription();
@@ -39,6 +45,7 @@ public class SubscriptionService {
         subscription.setTotalAmountPaid(totalAmount);
 
         Subscription savedSubscription = subscriptionRepository.save(subscription);
+
         return savedSubscription.getTotalAmountPaid();
     }
 

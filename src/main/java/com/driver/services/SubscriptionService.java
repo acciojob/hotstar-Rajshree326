@@ -29,12 +29,6 @@ public class SubscriptionService {
         subscription.setSubscriptionType(subscriptionEntryDto.getSubscriptionType());
         subscription.setNoOfScreensSubscribed(subscriptionEntryDto.getNoOfScreensRequired());
 
-        User user = userRepository.findById(subscriptionEntryDto.getUserId())
-                .orElseThrow(()-> new IllegalArgumentException("User Not Found"));
-
-        subscription.setUser(user);
-        user.setSubscription(subscription);
-
         int baseCost;
         int costPerScreen;
 
@@ -57,9 +51,15 @@ public class SubscriptionService {
         int totalAmount = baseCost + costPerScreen * subscriptionEntryDto.getNoOfScreensRequired();
         subscription.setTotalAmountPaid(totalAmount);
 
-        Subscription savedSubscription = subscriptionRepository.save(subscription);
+        User user = userRepository.findById(subscriptionEntryDto.getUserId()).get();
 
-        return savedSubscription.getTotalAmountPaid();
+        subscription.setUser(user);
+        user.setSubscription(subscription);
+        userRepository.save(user);
+
+        subscriptionRepository.save(subscription);
+
+        return totalAmount;
     }
 
 
@@ -68,79 +68,26 @@ public class SubscriptionService {
         //If you are already at an ElITE subscription : then throw Exception ("Already the best Subscription")
         //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
         //update the subscription in the repository
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        Subscription currentSubscription = user.getSubscription();
-
-        if (currentSubscription.getSubscriptionType() == SubscriptionType.ELITE) {
+        User u = userRepository.findById(userId).get();
+        if(u.getSubscription().getSubscriptionType().equals(SubscriptionType.ELITE)){
             throw new Exception("Already the best Subscription");
         }
-
-        //get the new SubscriptionType
-
-        SubscriptionType newSubscriptionType ;
-
-        switch (currentSubscription.getSubscriptionType()) {
-            case BASIC:
-                newSubscriptionType = SubscriptionType.PRO;
-                break;
-            case PRO:
-                newSubscriptionType = SubscriptionType.ELITE;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid subscription type");
+        else if(u.getSubscription().getSubscriptionType().equals(SubscriptionType.BASIC)){
+            u.getSubscription().setSubscriptionType(SubscriptionType.PRO);
+            int nofs = u.getSubscription().getNoOfScreensSubscribed();
+            int diff = 300+50*(nofs);
+            u.getSubscription().setTotalAmountPaid(800+250*(nofs));
+            userRepository.save(u);
+            return diff;
         }
-
-        //calculate the price paid in current subscription
-        int baseCost;
-        int costPerScreen;
-        switch (currentSubscription.getSubscriptionType()) {
-            case BASIC:
-                baseCost = 500;
-                costPerScreen = 200;
-                break;
-            case PRO:
-                baseCost = 800;
-                costPerScreen = 250;
-                break;
-            case ELITE:
-                baseCost = 1000;
-                costPerScreen = 350;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid subscription type");
+        else{
+            u.getSubscription().setSubscriptionType(SubscriptionType.ELITE);
+            int nofs = u.getSubscription().getNoOfScreensSubscribed();
+            int diff = 200+100*(nofs);
+            u.getSubscription().setTotalAmountPaid(1000+350*(nofs));
+            userRepository.save(u);
+            return diff;
         }
-        int totalAmount = baseCost + costPerScreen * currentSubscription.getNoOfScreensSubscribed();
-
-
-        //calculate the price paid in new subscription
-        switch (newSubscriptionType) {
-            case BASIC:
-                baseCost = 500;
-                costPerScreen = 200;
-                break;
-            case PRO:
-                baseCost = 800;
-                costPerScreen = 250;
-                break;
-            case ELITE:
-                baseCost = 1000;
-                costPerScreen = 350;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid subscription type");
-        }
-        int newTotalAmount = baseCost + costPerScreen * currentSubscription.getNoOfScreensSubscribed();
-
-        //upgrade the current subscription
-        currentSubscription.setSubscriptionType(newSubscriptionType);
-        currentSubscription.setTotalAmountPaid(newTotalAmount);
-
-        subscriptionRepository.save(currentSubscription);
-
-        //return the price difference
-        return newTotalAmount-totalAmount;
     }
 
     public Integer calculateTotalRevenueOfHotstar(){
@@ -151,10 +98,13 @@ public class SubscriptionService {
         List<Subscription> subscriptions = subscriptionRepository.findAll();
 
         // Sum up the total amounts of all subscriptions
-        if(subscriptions.isEmpty()) return 0;
-        return subscriptions.stream()
-                .mapToInt(Subscription::getTotalAmountPaid)
-                .sum();
+
+        int total = 0;
+        for(Subscription s:subscriptions){
+            total += s.getTotalAmountPaid();
+        }
+
+        return total;
     }
 
 }
